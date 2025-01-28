@@ -22,8 +22,8 @@ sub_states = [
 spark = SparkSession.builder \
     .appName("AppendCSVFiles") \
     .config("spark.master", "local[*]") \
-    .config("spark.executor.memory", "4g") \
-    .config("spark.driver.memory", "4g") \
+    .config("spark.executor.memory", "8g") \
+    .config("spark.driver.memory", "8g") \
     .config("spark.local.dir", "/tmp/spark-temp") \
     .config("spark.hadoop.fs.defaultFS", "file:///") \
     .getOrCreate()
@@ -38,6 +38,13 @@ for state in sub_states:
 # Create Dataframe
 df = [spark.read.csv(path, header = True, inferSchema = True) for path in csv_path]
 
+# If no valid CSV files, stop the execution
+if not df:
+    print("No valid CSV files to process.")
+    spark.stop()
+    exit()
+
+    
 # Combine dataframe
 combined_df = df[0]
 for data in df[1:]:

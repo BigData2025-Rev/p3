@@ -17,9 +17,8 @@ def combine_state_files(file_00001, file_00002, file_geo, output_file):
         .merge(df_geo, on="LOGRECNO", how="left")
     )
 
-    # Drop LOGRECNO after joining
-    combined_df = combined_df.drop(columns=["LOGRECNO"])
-
+    # drop logrecno after merge (only from 00002 and geo file)
+    combined_df = combined_df.loc[:, ~combined_df.columns.duplicated()]
 
     combined_df.to_csv(output_file, index=False)
     print(f"Combined file saved to: {output_file}")

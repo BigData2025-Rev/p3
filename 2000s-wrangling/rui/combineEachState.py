@@ -1,3 +1,4 @@
+from pyspark import StorageLevel
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, trim, when, regexp_replace, from_json, explode_outer, monotonically_increasing_id
 from pyspark.sql.functions import lit, concat
@@ -24,7 +25,8 @@ def combine_state_data(geo_df, file01_df, file02_df):
     file01_df = file01_df.drop("FILEID", "STUSAB", "CHARITER", "CIFSN")
     file02_df = file02_df.drop("FILEID", "STUSAB", "CHARITER", "CIFSN")
     combined_df = geo_df.join(file01_df, on="LOGRECNO", how="outer") \
-                        .join(file02_df, on="LOGRECNO", how="outer")
+                        .join(file02_df, on="LOGRECNO", how="outer") \
+                        .persist(StorageLevel.MEMORY_AND_DISK)
     
     # remove the duplicate column
     combined_df = combined_df.drop(*[col for col in combined_df.columns if col.endswith('_1') or col.endswith('_2')])
@@ -46,9 +48,9 @@ def read_state_data(state_dir, output_path):
         print(f"Missing files in {state_dir}, skipping.")
         return
 
-    geo_df = spark.read.csv(f"file://{geo_path}", header=True, inferSchema=True)
-    file01_df = spark.read.csv(f"file://{file01_path}", header=True, inferSchema=True)
-    file02_df = spark.read.csv(f"file://{file02_path}", header=True, inferSchema=True)
+    geo_df = spark.read.csv(f"file://{geo_path}", header=True, inferSchema=True).persist(StorageLevel.MEMORY_AND_DISK)
+    file01_df = spark.read.csv(f"file://{file01_path}", header=True, inferSchema=True).persist(StorageLevel.MEMORY_AND_DISK)
+    file02_df = spark.read.csv(f"file://{file02_path}", header=True, inferSchema=True).persist(StorageLevel.MEMORY_AND_DISK)
 
     # combine
     combined_df = combine_state_data(geo_df, file01_df, file02_df)
@@ -57,6 +59,9 @@ def read_state_data(state_dir, output_path):
     print(f"Combined data saved to: {output_path}")
 
     # release memory
+    geo_df.unpersist()
+    file01_df.unpersist()
+    file02_df.unpersist()
     del geo_df, file01_df, file02_df, combined_df
     spark.catalog.clearCache()
 

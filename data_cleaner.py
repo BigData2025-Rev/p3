@@ -139,6 +139,7 @@ class DataCleaner():
     
     def using_urban_rural(self):
         data: DataFrame = self.__data
+        data = data.withColumn('UR', col('UR').cast(IntegerType()))
         data = data.withColumn('UR', when(data.UR == 1, 'Urban') \
                                 .when(data.UR == 2, 'Rural') \
                                 .otherwise('Mixed'))

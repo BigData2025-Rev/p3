@@ -1,7 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import concat, col
 import os
-import shutil
 import glob
 from functools import reduce
 
@@ -27,11 +26,13 @@ orc_files = []
 for state_folder in os.listdir(intermediate_orc_dir):
     state_path = os.path.join(intermediate_orc_dir, state_folder)
 
+    # looks for orc file in each state directory
     if os.path.isdir(state_path):
         orc_file = glob.glob(os.path.join(state_path, "part-*.orc"))
         if orc_file:
             orc_files.append(orc_file[0])
 
+# store orc files (as dataframes) into a list
 state_dfs = [spark.read.orc(file) for file in orc_files]
 
 if state_dfs:
@@ -42,19 +43,7 @@ if state_dfs:
     combined_df = combined_df.withColumn("LOGRECNO", concat(col("STUSAB"), col("LOGRECNO")))
     combined_df = combined_df.coalesce(1)
 
-    # temp orc files to eventually be merged into one
-    temp_final_orc_path = os.path.join(final_orc_path, "temp_orc")
-    combined_df.write.orc(temp_final_orc_path, mode="overwrite")
+    # write as orc file
+    combined_df.write.orc(final_orc_path, mode="overwrite")
 
-    # get final orc file, rename, and move to root of directory
-    orc_file = glob.glob(os.path.join(temp_final_orc_path, "part-*.orc"))
-
-    if orc_file:
-        final_orc_file = os.path.join(final_orc_path, "final.orc")
-        shutil.move(orc_file[0], final_orc_file)
-        print(f"merged ORC file: {final_orc_file}")
-
-    # remove temp and crc files
-    shutil.rmtree(temp_final_orc_path)
-
-    print(f"Final ORC file saved at: {final_orc_file}")
+    print(f"ORC file created")

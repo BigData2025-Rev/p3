@@ -22,6 +22,7 @@ state_orc = r"/mnt/c/Users/adeel/Desktop/state_orc"
 for state_folder in os.listdir(input_dir):
     state_path = os.path.join(input_dir, state_folder)
 
+    # iterate and convert csv to orc for each state
     if os.path.isdir(state_path):
         state_dfs = []
 

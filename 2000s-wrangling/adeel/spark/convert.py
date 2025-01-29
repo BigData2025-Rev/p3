@@ -37,7 +37,6 @@ for state_folder in os.listdir(input_dir):
             for other_df in state_dfs[1:]:
                 state_df = state_df.union(other_df)
 
-            # **Ensure only 1 ORC file is written per state**
             state_df = state_df.coalesce(1)
 
             state_orc_output_path = os.path.join(state_orc, state_folder)

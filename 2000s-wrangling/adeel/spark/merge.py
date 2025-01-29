@@ -1,7 +1,11 @@
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import concat, col
 import os
+import shutil
+import glob
+from functools import reduce
 
-spark = SparkSession.builder.appName("Convert CSV to ORC") \
+spark = SparkSession.builder.appName("Merge ORC Files") \
     .config("spark.driver.memory", "12g") \
     .config("spark.executor.memory", "12g") \
     .config("spark.executor.memoryOverhead", "4g") \
@@ -16,31 +20,41 @@ spark = SparkSession.builder.appName("Convert CSV to ORC") \
     .getOrCreate()
 
 # Paths
-input_dir = r"/mnt/c/Users/adeel/Desktop/combined_csv"
-state_orc = r"/mnt/c/Users/adeel/Desktop/state_orc"
+intermediate_orc_dir = r"/mnt/c/Users/adeel/Desktop/state_orc"
+final_orc_path = r"/mnt/c/Users/adeel/Desktop/final_orc"
 
-for state_folder in os.listdir(input_dir):
-    state_path = os.path.join(input_dir, state_folder)
+orc_files = []
+for state_folder in os.listdir(intermediate_orc_dir):
+    state_path = os.path.join(intermediate_orc_dir, state_folder)
 
     if os.path.isdir(state_path):
-        state_dfs = []
+        orc_file = glob.glob(os.path.join(state_path, "part-*.orc"))
+        if orc_file:
+            orc_files.append(orc_file[0])
 
-        for file in os.listdir(state_path):
-            if file.endswith(".csv"):
-                file_path = os.path.join(state_path, file)
+state_dfs = [spark.read.orc(file) for file in orc_files]
 
-                df = spark.read.option("header", "true").option("inferSchema", "true").csv(file_path)
-                state_dfs.append(df)
+if state_dfs:
+    # merge by union seperated dfs for each state
+    combined_df = reduce(lambda df1, df2: df1.union(df2), state_dfs)
 
-        if state_dfs:
-            state_df = state_dfs[0]
-            for other_df in state_dfs[1:]:
-                state_df = state_df.union(other_df)
+    # logrecno transformation -> state inital (STUSAB) + logrecno to make unique for each record
+    combined_df = combined_df.withColumn("LOGRECNO", concat(col("STUSAB"), col("LOGRECNO")))
+    combined_df = combined_df.coalesce(1)
 
-            # **Ensure only 1 ORC file is written per state**
-            state_df = state_df.coalesce(1)
+    # temp orc files to eventually be merged into one
+    temp_final_orc_path = os.path.join(final_orc_path, "temp_orc")
+    combined_df.write.orc(temp_final_orc_path, mode="overwrite")
 
-            state_orc_output_path = os.path.join(state_orc, state_folder)
-            state_df.write.orc(state_orc_output_path, mode="overwrite")
+    # get final orc file, rename, and move to root of directory
+    orc_file = glob.glob(os.path.join(temp_final_orc_path, "part-*.orc"))
 
-            print(f"ORC file: {state_orc_output_path}")
+    if orc_file:
+        final_orc_file = os.path.join(final_orc_path, "final.orc")
+        shutil.move(orc_file[0], final_orc_file)
+        print(f"merged ORC file: {final_orc_file}")
+
+    # remove temp and crc files
+    shutil.rmtree(temp_final_orc_path)
+
+    print(f"Final ORC file saved at: {final_orc_file}")

@@ -8,7 +8,7 @@ def main():
     data: DataFrame = data_loader.data
 
     cleaned_data: DataFrame = DataCleaner(data) \
-                            .test_method() \
+                            .using_total_population() \
                             .data
     
     cleaned_data.show()

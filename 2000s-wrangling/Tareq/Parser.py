@@ -1,8 +1,10 @@
+import os
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
+# Initialize Spark
 spark = SparkSession.builder \
-        .appName("Combine Headers and Values") \
+        .appName("Process UPL Files for All States") \
         .master("local[*]") \
         .config("spark.hadoop.fs.defaultFS", "file:///") \
         .getOrCreate()
@@ -11,25 +13,17 @@ def parse_fixed_width_file(header_file, data_file, output_file):
     """
     Reads a fixed-width file (data_file) based on column information in header_file,
     and writes the parsed data into a CSV file.
-
-    :param header_file: Path to the header CSV file containing column names and lengths.
-    :param data_file: Path to the fixed-width data file.
-    :param output_file: Path to save the resulting CSV file.
     """
-    # Read the header CSV to get column names and lengths
     header_schema = StructType([
         StructField("DESC", StringType(), True),
         StructField("NAME", StringType(), True),
         StructField("LEN", IntegerType(), True),
     ])
     header_df = spark.read.csv(f"file://{header_file}", schema=header_schema, header=True)
- 
 
-      # Extract column names and lengths
     column_names = [row["NAME"] for row in header_df.collect()]
     column_lengths = [row["LEN"] for row in header_df.collect()]
 
-   
     def parse_fixed_width_line(line):
         positions = [0] + column_lengths
         positions = [sum(positions[:i + 1]) for i in range(len(positions))]
@@ -42,42 +36,61 @@ def parse_fixed_width_file(header_file, data_file, output_file):
 
 
 def combine_columns_and_values(header_file, value_file, output_file):
-
-    # Read the header file to extract column names
+    """
+    Reads a CSV header file and a values file, then saves the formatted DataFrame.
+    """
     with open(header_file, 'r') as f:
-        headers = f.readline().strip().split(",")  # Extract the first line as column names
+        headers = f.readline().strip().split(",")
 
-    # Read the values file as a DataFrame
     values_df = spark.read.csv(f"file://{value_file}", header=False)
-
-    # Assign the headers as column names
     values_df = values_df.toDF(*headers)
 
-    # Save the resulting DataFrame to a CSV file in the local file system
     values_df.coalesce(1).write.csv(f"file://{output_file}", header=True, mode="overwrite")
 
-    print(f"Combined CSV saved to: {output_file}")
 
-    # Stop the Spark session
-    spark.stop()
+def process_all_states(base_path):
+    """
+    Iterates through all state directories in the dataset folder and processes `.upl` files.
+    """
+    state_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
 
-# File paths
-header_file1_path = "/mnt/c/Users/ttaar/p2Dataset/redistricting_file--pl_94-171/0File_Structure/PL_Part1.csv"
-value_file1_path = "/mnt/c/Users/ttaar/p2Dataset/redistricting_file--pl_94-171/California/ca00001.upl"
-output_file1_path = "/mnt/c/Users/ttaar/p2Dataset/part1_output.csv"
+    # Paths for header files (unchanged)
+    header_part1 = os.path.join(base_path, "0File_Structure", "PL_Part1.csv")
+    header_part2 = os.path.join(base_path, "0File_Structure", "PL_Part2.csv")
+    header_geo = os.path.join(base_path, "0File_Structure", "header.csv")
 
-header_file2_path = "/mnt/c/Users/ttaar/p2Dataset/redistricting_file--pl_94-171/0File_Structure/PL_Part2.csv"
-value_file2_path = "/mnt/c/Users/ttaar/p2Dataset/redistricting_file--pl_94-171/California/ca00002.upl"
-output_file2_path = "/mnt/c/Users/ttaar/p2Dataset/part2_output.csv"
+    for state in state_dirs:
+        state_path = os.path.join(base_path, state)
 
-# Run the function
-combine_columns_and_values(header_file1_path, value_file1_path, output_file1_path)
-combine_columns_and_values(header_file2_path, value_file2_path, output_file2_path)
+        # **Find all `.upl` files inside each state directory**
+        upl_files = [f for f in os.listdir(state_path) if f.endswith(".upl")]
+
+        for upl_file in upl_files:
+            full_file_path = os.path.join(state_path, upl_file)
+            
+            if "geo" in upl_file.lower():  # **Process Geography file**
+                geo_output = os.path.join("/mnt/c/Users/ttaar/p2Dataset/", f"{state}_geo_output.csv")
+                parse_fixed_width_file(header_geo, full_file_path, geo_output)
+                print(f"Processed GEO file for {state}")
+
+            elif "01" in upl_file.lower():  # **Process PL_Part1**
+                part1_output = os.path.join("/mnt/c/Users/ttaar/p2Dataset/", f"{state}_part1_output.csv")
+                combine_columns_and_values(header_part1, full_file_path, part1_output)
+                print(f"Processed Part1 file for {state}")
+
+            elif "02" in upl_file.lower():  # **Process PL_Part2**
+                part2_output = os.path.join("/mnt/c/Users/ttaar/p2Dataset", f"{state}_part2_output.csv")
+                combine_columns_and_values(header_part2, full_file_path, part2_output)
+                print(f"Processed Part2 file for {state}")
+
+        print(f"✅ Finished processing state: {state}")
 
 
-header_file_path = "/mnt/c/Users/ttaar/p2Dataset/redistricting_file--pl_94-171/0File_Structure/header.csv"
-data_file_path = "/mnt/c/Users/ttaar/p2Dataset/redistricting_file--pl_94-171/California/cageo.upl"
-output_file_path = "/mnt/c/Users/ttaar/p2Dataset/geo_output.csv"
+# Base directory where states are stored
+base_dataset_path = "/mnt/c/Users/ttaar/p2Dataset/redistricting_file--pl_94-171"
 
-# Parse the fixed-width file and save the output
-parse_fixed_width_file(header_file_path, data_file_path, output_file_path)
+# Process all state folders dynamically
+process_all_states(base_dataset_path)
+
+# Stop Spark session
+spark.stop()

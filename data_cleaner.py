@@ -14,6 +14,7 @@ class DataCleaner():
     
     def using_total_population(self):
         """
+            Author: Miguel + ideas from team.
             Example for individual methods that are responsible for a single task 
             like making sure total population is included, has the right data type, and it is named appropriately.
 

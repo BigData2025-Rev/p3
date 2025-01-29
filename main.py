@@ -35,11 +35,11 @@ def main():
                             .data
 
     #Ouptut to CSV
-    cleaned_data.coalesce(1).write.csv("2000_combined_states_filtered.csv", header=True, mode="overwrite")
+    # cleaned_data.coalesce(1).write.csv("2000_combined_states_filtered.csv", header=True, mode="overwrite")
 
     #Output to ORC
-    cleaned_data.write.orc("2000_combined_states_filtered.orc", mode="overwrite")
-    
+    # cleaned_data.write.orc("2000_combined_states_filtered.orc", mode="overwrite")
+    cleaned_data.show()
     cleaned_data.printSchema()
 
     data_loader.stop()

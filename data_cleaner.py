@@ -255,3 +255,8 @@ class DataCleaner():
                                 .when(col("urban_rural").isNull(), None) \
                                 .otherwise('Mixed'))
         return DataCleaner(data)
+    
+    def using_composite_key(self):
+        data: DataFrame = self.__data
+        data = data.withColumnRenamed('Custom_Unique_Key','unique_key')
+        return DataCleaner(data)

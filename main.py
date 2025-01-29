@@ -29,6 +29,9 @@ def main():
                             .using_native_hawaiian_population() \
                             .using_other_race_population() \
                             .using_two_or_more_races_population() \
+                            .using_urban_rural() \
+                            .using_region() \
+                            .add_metro_status() \
                             .add_year() \
                             .add_geodata(2000) \
                             .select_data(FINAL_COLUMNS) \

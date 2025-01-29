@@ -114,21 +114,31 @@ class DataCleaner():
         data = data.select(columns)
         return DataCleaner(data)
 
-    def categorize_metro_status(self):
+    def add_metro_status(self):
         """
         Categorizes areas into 'Metropolitan' or 'Non-Metropolitan' based on the MACCI column.
         - 'Y' → 'Metropolitan'
         - 'N' or '9' → 'Non-Metropolitan'
         """
         data: DataFrame = self.__data
+        data = data.withColumnRenamed("MACCI", "metro_status")
         data = data.withColumn(
-            "Metro_Status",
-            when(col("MACCI") == "Y", "Metropolitan")
+            "metro_status",
+            when(col("metro_status") == "Y", "Metropolitan")
             .otherwise("Non-Metropolitan")
         )
         return DataCleaner(data)
-    
+        
+
     def using_region(self):
+        """
+        Categorize areas into region based on the REGION column
+        1 == Northeast,
+        2 == Midwest,
+        3 == South,
+        4 == West,
+        9 == Not in mainland
+        """
         data: DataFrame = self.__data
         data = data.withColumn('region', when(data.region == '1', 'Northeast') \
                                 .when(data.region == '2', 'Midwest') \
@@ -138,6 +148,12 @@ class DataCleaner():
         return DataCleaner(data)
     
     def using_urban_rural(self):
+        """
+        Add Urban or Rural classification column
+        - U -> wholly urban
+        - R -> wholly rural
+        - M -> Mixed
+        """
         data: DataFrame = self.__data
         data = data.withColumn('UR', when(data.UR == 'U', 'Urban') \
                                 .when(data.UR == 'R', 'Rural') \

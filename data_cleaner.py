@@ -116,7 +116,7 @@ class DataCleaner():
 
     def add_metro_status(self):
         """
-        Categorizes areas into 'Metropolitan' or 'Non-Metropolitan' based on the MACCI column.
+        Categorizes areas into 'Metropolitan' or 'Non-Metropolitan' based on the MACCI column and leaves null values as null.
         - 'Y' → 'Metropolitan'
         - 'N' or '9' → 'Non-Metropolitan'
         """
@@ -125,6 +125,7 @@ class DataCleaner():
         data = data.withColumn(
             "metro_status",
             when(col("metro_status") == "Y", "Metropolitan")
+            .when(col("metro_status").isNull(), None)
             .otherwise("Non-Metropolitan")
         )
         return DataCleaner(data)
@@ -132,7 +133,7 @@ class DataCleaner():
 
     def using_region(self):
         """
-        Categorize areas into region based on the REGION column
+        Categorize areas into region based on the REGION column and leaves null values as null.
         1 == Northeast,
         2 == Midwest,
         3 == South,
@@ -140,22 +141,26 @@ class DataCleaner():
         9 == Not in mainland
         """
         data: DataFrame = self.__data
-        data = data.withColumn('region', when(data.region == '1', 'Northeast') \
-                                .when(data.region == '2', 'Midwest') \
-                                .when(data.region == '3', 'South') \
-                                .when(data.region == '4', 'West') \
+        data = data.withColumnRenamed("REGION", "region")
+        data = data.withColumn('region', when(col("region") == '1', 'Northeast') \
+                                .when(col("region") == '2', 'Midwest') \
+                                .when(col("region") == '3', 'South') \
+                                .when(col("region") == '4', 'West') \
+                                .when(col("region").isNull(), None)
                                 .otherwise('Other'))
         return DataCleaner(data)
     
     def using_urban_rural(self):
         """
-        Add Urban or Rural classification column
+        Add Urban or Rural classification column and leaves null values as null.
         - U -> wholly urban
         - R -> wholly rural
         - M -> Mixed
         """
         data: DataFrame = self.__data
-        data = data.withColumn('UR', when(data.UR == 'U', 'Urban') \
-                                .when(data.UR == 'R', 'Rural') \
+        data = data.withColumnRenamed("UR", "urban_rural")
+        data = data.withColumn('UR', when(col("urban_rural") == 'U', 'Urban') \
+                                .when(col("urban_rural") == 'R', 'Rural') \
+                                .when(col("urban_rural").isNull(), None) \
                                 .otherwise('Mixed'))
         return DataCleaner(data)

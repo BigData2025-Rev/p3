@@ -1,18 +1,21 @@
-import csv
 from pyspark.sql import SparkSession
 import constant
 
-spark = SparkSession.builder.getOrCreate()
+spark = SparkSession.builder\
+    .appName("DataProcessing") \
+    .config("spark.executor.memory", "4g") \
+    .config("spark.driver.memory", "4g") \
+    .config("spark.shuffle.file.buffer", "64k") \
+    .config("spark.shuffle.spill.compress", "true") \
+    .config("spark.shuffle.compress", "true") \
+    .getOrCreate()
 
+geo_header_broadcast = spark.sparkContext.broadcast(constant.GEO_HEADER)
 def process_line(line):
-    line_info = []
-    for k, v in constant.GEO_HEADER.items():
-        line_info.append(eval(f"line[{v}]").strip())
-    return line_info
+    geo_header = geo_header_broadcast.value
+    return [eval(f"line[{v}]").strip() for k, v in geo_header.items()]
 
 for state in constant.STATES:
-    # print(state)
-
     geo_file = f"final/2010/{state}/*geo2010.pl"
     p1_file = f"final/2010/{state}/*000012010.pl"
     p2_file = f"final/2010/{state}/*000022010.pl"
@@ -29,8 +32,8 @@ for state in constant.STATES:
     p2_df = p2_df.toDF(*constant.P2_HEADER)
     p2_df = p2_df.drop("FILEID","STUSAB","CHARITER","CIFSN")
 
-    output = geo_df.join(p1_df, on="LOGRECNO", how="outer")\
-                    .join(p2_df, on="LOGRECNO", how="outer")
+    output = geo_df.join(p1_df, on="LOGRECNO", how="outer")
+    output = output.join(p2_df, on="LOGRECNO", how="outer")
     output = output.sort("LOGRECNO", ascending=True)
     output = output.select(*constant.COMBINE_HEADER)
-    output.coalesce(1).write.mode("overwrite").orc(f"final/2010/{state}/output")
+    output.write.mode("overwrite").orc(f"final/2010/{state}/output")

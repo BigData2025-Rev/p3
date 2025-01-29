@@ -5,9 +5,9 @@ path = "hdfs://localhost:9000/user/test/*.csv"
 
 df = spark.read.csv(path, header=True, inferSchema=True)
 
-orc_path = "hdfs://localhost:9000/user/test/2010_combined_states.orc"
+orc_path = "hdfs://localhost:9000/user/test/2010_combined_states"
 
-df.write.format('orc').mode('overwrite').save(orc_path)
+df.coalesce(1).write.format('orc').mode('overwrite').save(orc_path)
 
 spark.stop()
 

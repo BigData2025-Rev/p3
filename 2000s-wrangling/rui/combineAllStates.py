@@ -53,7 +53,7 @@ sample_df = spark.read.option("header", "true").csv(csv_files[0])
 csv_schema = sample_df.schema
 print("Got sample schema.")
 
-print(csv_schema)
+sample_df.printSchema()
 
 # read all csv files with same schema
 df = spark.read.schema(csv_schema) \

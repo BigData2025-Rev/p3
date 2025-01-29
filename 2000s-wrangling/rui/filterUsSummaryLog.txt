@@ -1,5 +1,3 @@
-Retrived all csv files. 52
-Got sample schema.
 root
  |-- LOGRECNO: string (nullable = true)
  |-- FILEID: string (nullable = true)

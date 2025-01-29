@@ -17,5 +17,10 @@ load_dotenv('.env')
 SPARK_APP_NAME = 'Census Bureau Data Cleaner'
 HDFS_MASTER = os.environ.get("HDFS_MASTER")
 HDFS_USER = os.environ.get("HDFS_USER")
-HDFS_FILENAME = os.environ.get("HDFS_FILENAME_1")
-HDFS_DATA_DIR_1 = f"{HDFS_MASTER}/user/{HDFS_USER}/{HDFS_FILENAME}"
+HDFS_FILENAME_1 = os.environ.get("HDFS_FILENAME_1")
+HDFS_FILENAME_2 = os.environ.get("HDFS_FILENAME_2")
+HDFS_FILENAME_3 = os.environ.get("HDFS_FILENAME_3")
+
+HDFS_DATA_DIR_1 = f"{HDFS_MASTER}/user/{HDFS_USER}/{HDFS_FILENAME_1}"
+HDFS_DATA_DIR_2 = f"{HDFS_MASTER}/user/{HDFS_USER}/{HDFS_FILENAME_2}"
+HDFS_DATA_DIR_3 = f"{HDFS_MASTER}/user/{HDFS_USER}/{HDFS_FILENAME_3}"

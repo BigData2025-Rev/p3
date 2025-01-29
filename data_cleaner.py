@@ -22,7 +22,8 @@ class DataCleaner():
             Returns: A new DataCleaner object with the resulting DataFrame passed to its constructor.
         """
         data: DataFrame = self.__data
-        data = data.withColumn('total_population', data['P0010001'].cast(IntegerType())).drop('P0010001')
+        data = data.withColumnRenamed('P0010001', 'total_population')
+        data = data.withColumn('total_population', data['total_population'].cast(IntegerType()))
         return DataCleaner(data)
 
     #Filters summary levels, pass in a list of summary levels to filter by.

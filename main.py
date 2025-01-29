@@ -1,11 +1,18 @@
 from data_loader import DataLoader
 from data_cleaner import DataCleaner
 from pyspark.sql import DataFrame
-from config import HDFS_DATA_DIR_1
+from config import HDFS_DATA_DIR_1, HDFS_DATA_DIR_2, HDFS_DATA_DIR_3
 
 def main():
-    data_loader = DataLoader(HDFS_DATA_DIR_1)
+    data_loader = DataLoader()
+
+    data_loader.add_data_from(HDFS_DATA_DIR_1)
+    data_loader.add_data_from(HDFS_DATA_DIR_2)
+    data_loader.add_data_from(HDFS_DATA_DIR_3)
+    data_loader.set_excluded_columns()
+
     data: DataFrame = data_loader.data
+    data.show()
 
     SUMMARY_LEVELS = [50, 500, 160, 40]
 

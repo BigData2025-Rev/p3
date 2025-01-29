@@ -1,6 +1,5 @@
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col
-from pyspark.sql.types import IntegerType
+from pyspark.sql.functions import col, when
 from pyspark.sql.types import IntegerType
 
 class DataCleaner():
@@ -23,7 +22,7 @@ class DataCleaner():
         """
         data: DataFrame = self.__data
         data = data.withColumnRenamed('P0010001', 'total_population')
-        data = data.withColumn('total_population', data['total_population'].cast(IntegerType()))
+        data = data.withColumn('total_population', col('total_population').cast(IntegerType()))
         return DataCleaner(data)
 
     #Filters summary levels, pass in a list of summary levels to filter by.
@@ -112,4 +111,18 @@ class DataCleaner():
     def select_data(self, columns: list[str]) -> DataFrame:
         data: DataFrame = self.__data
         data = data.select(columns)
+        return DataCleaner(data)
+
+    def categorize_metro_status(self):
+        """
+        Categorizes areas into 'Metropolitan' or 'Non-Metropolitan' based on the MACCI column.
+        - 'Y' → 'Metropolitan'
+        - 'N' or '9' → 'Non-Metropolitan'
+        """
+        data: DataFrame = self.__data
+        data = data.withColumn(
+            "Metro_Status",
+            when(col("MACCI") == "Y", "Metropolitan")
+            .otherwise("Non-Metropolitan")
+        )
         return DataCleaner(data)

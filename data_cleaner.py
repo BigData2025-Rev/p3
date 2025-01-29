@@ -126,3 +126,20 @@ class DataCleaner():
             .otherwise("Non-Metropolitan")
         )
         return DataCleaner(data)
+    
+    def using_region(self):
+        data: DataFrame = self.__data
+        data = data.withColumn('region', col('region').cast(IntegerType()))
+        data = data.withColumn('region', when(data.region == 1, 'Northeast') \
+                                .when(data.region == 2, 'Midwest') \
+                                .when(data.region == 3, 'South') \
+                                .when(data.region == 4, 'West') \
+                                .otherwise('Other'))
+        return DataCleaner(data)
+    
+    def using_urban_rural(self):
+        data: DataFrame = self.__data
+        data = data.withColumn('UR', when(data.UR == 1, 'Urban') \
+                                .when(data.UR == 2, 'Rural') \
+                                .otherwise('Mixed'))
+        return DataCleaner(data)

@@ -30,12 +30,14 @@ class DataLoader():
         for index, df in enumerate(self.__data_list):
             if _data is None:
                 _data: DataFrame = df
-                
-                _data: DataFrame = _data.select(self.get_select_columns(index))
+                select_columns = self.get_select_columns(index)
+                _data: DataFrame = _data.select(select_columns)
+                _data: DataFrame = _data.withColumnRenamed(select_columns[-1], 'district')
                 _data: DataFrame = _data.withColumn('Custom_Decade', lit(self.get_year(index)))
             else:
-                select_columns = self.__columns.copy()
-                df: DataFrame = df.select(self.get_select_columns(index))
+                select_columns = self.get_select_columns(index)
+                df: DataFrame = df.select(select_columns)
+                df: DataFrame = df.withColumnRenamed(select_columns[-1], 'district')
                 df: DataFrame = df.withColumn('Custom_Decade', lit(self.get_year(index)))
                 _data = _data.union(df)
 

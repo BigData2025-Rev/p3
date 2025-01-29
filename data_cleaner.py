@@ -99,12 +99,13 @@ class DataCleaner():
         data = data.withColumnRenamed('SUMLEV', 'summary_level')
 
         #2000: CD106, 2010: CD, 2020: CD116 (double check these are correct)
-        if decade == 2000:
-            data = data.withColumnRenamed('CD106', 'district')
-        elif decade == 2010:
-            data = data.withColumnRenamed('CD', 'district')
-        elif decade == 2020:
-            data = data.withColumnRenamed('CD116', 'district')
+        #Now handled at the DataLoader class.
+        # if decade == 2000:
+        #     data = data.withColumnRenamed('CD106', 'district')
+        # elif decade == 2010:
+        #     data = data.withColumnRenamed('CD', 'district')
+        # elif decade == 2020:
+        #     data = data.withColumnRenamed('CD116', 'district')
         return DataCleaner(data)
 
     #Selects the columns we need for the final output. Pass in a list of columns to select.

@@ -40,83 +40,83 @@ spark = SparkSession.builder \
     .config("spark.driver.extraJavaOptions", "-XX:+UseG1GC") \
     .getOrCreate()
 
-def mergeStates():
-    state_folders = [f.path for f in os.scandir(state_files_path) if f.is_dir()]
-    state_files = []
+class Merge:
+    
+    @staticmethod
+    def mergeStates(state_files_path, state_output_combined_path_csv, state_output_combined_path_orc):
+        state_folders = [f.path for f in os.scandir(state_files_path) if f.is_dir()]
+        state_files = []
 
-    for state_folder in state_folders:
-        if "ummary" in state_folder:
-            # to avoid read the US_Summary folder
-            continue
-        if merge_type == "csv":
-            file = glob.glob(os.path.join(state_folder, "*.csv"))
+        for state_folder in state_folders:
+            if "ummary" in state_folder:
+                # to avoid read the US_Summary folder
+                continue
+            if merge_type == "csv":
+                file = glob.glob(os.path.join(state_folder, "*.csv"))
+            if merge_type == "orc":
+                file = glob.glob(os.path.join(state_folder, "*.orc"))
+            if file:
+                state_files.append(file[0])
+
+        print("Retrived all csv files.", len(state_files))
+
+        # read all csv or orc files
         if merge_type == "orc":
-            file = glob.glob(os.path.join(state_folder, "*.orc"))
-        if file:
-            state_files.append(file[0])
+            state_dfs = [spark.read.orc(file) for file in state_files]
+        else:
+            state_dfs = [spark.read.option("header", "true").csv(file) for file in state_files]
 
-    print("Retrived all csv files.", len(state_files))
+        # merge the state dataframes and coalesce to single file
+        merged_df = reduce(lambda x, y: x.union(y), state_dfs).coalesce(1)
+        # perhaps if we want to create new columns
+        merged_df = merged_df.withColumn("LOGRECNO", concat(col("STUSAB"), col("LOGRECNO")))
+        merged_df = merged_df.withColumn("Custom_Decade", lit(2000))
+        merged_df = merged_df.withColumn("Custom_Unique_Key", 
+                            concat(lit("2000-"), col("STUSAB"), lit("-"), col("LOGRECNO")))
 
-    # read all csv or orc files
-    if merge_type == "orc":
-        state_dfs = [spark.read.orc(file) for file in state_files]
-    else:
-        state_dfs = [spark.read.option("header", "true").csv(file) for file in state_files]
+        # make sure the output path exists
+        os.makedirs(state_output_combined_path_csv, exist_ok=True)
+        os.makedirs(state_output_combined_path_orc, exist_ok=True)
 
-    # merge the state dataframes and coalesce to single file
-    merged_df = reduce(lambda x, y: x.union(y), state_dfs).coalesce(1)
-    # perhaps if we want to create new columns
-    merged_df = merged_df.withColumn("LOGRECNO", concat(col("STUSAB"), col("LOGRECNO")))
-    merged_df = merged_df.withColumn("Custom_Decade", lit(2000))
-    merged_df = merged_df.withColumn("Custom_Unique_Key", 
-                        concat(lit("2000-"), col("STUSAB"), lit("-"), col("LOGRECNO")))
+        # write to csv
+        # write as orc
+        merged_df.write.option("header", "true").mode("overwrite").csv(state_output_combined_path_csv)
+        merged_df.write.mode("overwrite").orc(state_output_combined_path_orc)
 
-    # make sure the output path exists
-    os.makedirs(state_output_combined_path_csv, exist_ok=True)
-    os.makedirs(state_output_combined_path_orc, exist_ok=True)
+        print(f"Merge finished, CSV file under: {state_output_combined_path_csv}")
+        print(f"Merge finished, ORC file under: {state_output_combined_path_orc}")
 
-    # write to csv
-    # write as orc
-    merged_df.write.option("header", "true").mode("overwrite").csv(state_output_combined_path_csv)
-    merged_df.write.mode("overwrite").orc(state_output_combined_path_orc)
+    @staticmethod
+    def cleanUSSummary(us_summary_path, us_summary_output_path_csv, us_summary_output_path_orc):
+        """
+        Clean the US Summary file and store as csv/orc
+        """
+        if merge_type == "csv":
+            file = glob.glob(os.path.join(us_summary_path, "*.csv"))
+            us_df = spark.read.option("header", "true").csv(file)
+        if merge_type == "orc":
+            file = glob.glob(os.path.join(us_summary_path, "*.orc"))
+            us_df = spark.read.orc(file)
+        
+        # Only want the data records before pacific
+        us_df = us_df.filter(col("LOGRECNO").cast("int") <= 14).coalesce(1)
+        
+        # make sure the column names remains the same as the state file
+        us_df = us_df.withColumn("LOGRECNO", concat(col("STUSAB"), col("LOGRECNO")))
+        us_df = us_df.withColumn("Custom_Decade", lit(2000))
+        us_df = us_df.withColumn("Custom_Unique_Key", 
+                            concat(lit("2000-"), col("STUSAB"), lit("-"), col("LOGRECNO")))
+        
+        # write the US file in both csv and orc format
+        os.makedirs(us_summary_output_path_csv, exist_ok=True)
+        os.makedirs(us_summary_output_path_csv, exist_ok=True)
 
-    print(f"Merge finished, CSV file under: {state_output_combined_path_csv}")
-    print(f"Merge finished, ORC file under: {state_output_combined_path_orc}")
+        # write to csv
+        # write as orc
+        us_df.write.option("header", "true").mode("overwrite").csv(us_summary_output_path_csv)
+        us_df.write.mode("overwrite").orc(us_summary_output_path_orc)
 
-def cleanUSSummary():
-    """
-    Clean the US Summary file and store as csv/orc
-    """
-    if merge_type == "csv":
-        file = glob.glob(os.path.join(us_summary_path, "*.csv"))
-        us_df = spark.read.option("header", "true").csv(file)
-    if merge_type == "orc":
-        file = glob.glob(os.path.join(us_summary_path, "*.orc"))
-        us_df = spark.read.orc(file)
-    
-    # Only want the data records before pacific
-    us_df = us_df.filter(col("LOGRECNO").cast("int") <= 14).coalesce(1)
-    
-    # make sure the column names remains the same as the state file
-    us_df = us_df.withColumn("LOGRECNO", concat(col("STUSAB"), col("LOGRECNO")))
-    us_df = us_df.withColumn("Custom_Decade", lit(2000))
-    us_df = us_df.withColumn("Custom_Unique_Key", 
-                        concat(lit("2000-"), col("STUSAB"), lit("-"), col("LOGRECNO")))
-    
-    # write the US file in both csv and orc format
-    os.makedirs(us_summary_output_path_csv, exist_ok=True)
-    os.makedirs(us_summary_output_path_csv, exist_ok=True)
-
-    # write to csv
-    # write as orc
-    us_df.write.option("header", "true").mode("overwrite").csv(us_summary_output_path_csv)
-    us_df.write.mode("overwrite").orc(us_summary_output_path_orc)
-
-    print(f"US Summary file filtered, CSV file under: {us_summary_output_path_csv}")
-    print(f"US Summary file filtered, ORC file under: {us_summary_output_path_orc}")
-
-
-mergeStates()
-cleanUSSummary()
+        print(f"US Summary file filtered, CSV file under: {us_summary_output_path_csv}")
+        print(f"US Summary file filtered, ORC file under: {us_summary_output_path_orc}")
 
 spark.stop()

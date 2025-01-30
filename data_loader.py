@@ -1,7 +1,14 @@
+import re
 import spark_singleton as ss
 from pyspark.sql import SparkSession
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, lit
+from pyspark.sql.functions import col, lit, concat, udf
+from pyspark.sql.types import StringType
+
+@udf(StringType())
+def extract_logrecno(entry):
+    matched = re.search(r'\d+', entry) 
+    return matched.group()
 
 class DataLoader():
     spark = ss.SparkSingleton.getInstance()
@@ -15,33 +22,60 @@ class DataLoader():
         year_list = [2000, 2010, 2020]
         return year_list[index]
 
-    def get_select_columns(self, index):
+    def get_select_columns(self, index: int):
         cd_difference = ['CD106', 'CD', 'CD116']
+        pci_difference = ['MACCI', 'CBSAPCI', 'CBSAPCI']
 
         select_columns = self.__columns.copy()
         select_columns.append(cd_difference[index])
+        select_columns.append(pci_difference[index])
         return select_columns
     
+    def select_columns(self, data: DataFrame, select_columns: list[str]):
+        data = data.select(select_columns)
+        return data
+    
+    def rename_select_columns(self, data: DataFrame, select_columns: list[str]):
+        data: DataFrame = data.withColumnRenamed(select_columns[-2], 'district')
+        data: DataFrame = data.withColumnRenamed(select_columns[-1], 'metro_status')
+        return data
+    
+    def add_decade(self, data: DataFrame, index):
+        data = data.withColumn('Custom_Decade', lit(self.get_year(index)))
+        return data
+    
+    def extract_logrecno(self, data: DataFrame):
+        data: DataFrame = data.withColumn('LOGRECNO', extract_logrecno('LOGRECNO'))
+        return data
+
+    def add_composite_key(self, data: DataFrame):
+        data = data.withColumn('Custom_Unique_Key', concat(col('Custom_Decade'),lit('-'), col('STUSAB'),lit('-'), col('LOGRECNO')))
+        
+        return data
+    
+
     @property
     def data(self):
-        _data: DataFrame = None
-        
-        
+        self.__data = None        
         for index, df in enumerate(self.__data_list):
-            if _data is None:
-                _data: DataFrame = df
+            if self.__data is None:
+                self.__data = df
                 select_columns = self.get_select_columns(index)
-                _data: DataFrame = _data.select(select_columns)
-                _data: DataFrame = _data.withColumnRenamed(select_columns[-1], 'district')
-                _data: DataFrame = _data.withColumn('Custom_Decade', lit(self.get_year(index)))
+                self.__data = self.select_columns(self.__data, select_columns)
+                self.__data = self.rename_select_columns(self.__data, select_columns)
+                self.__data = self.add_decade(self.__data, index)
+                self.__data = self.extract_logrecno(self.__data)
+                self.__data = self.add_composite_key(self.__data)
             else:
                 select_columns = self.get_select_columns(index)
-                df: DataFrame = df.select(select_columns)
-                df: DataFrame = df.withColumnRenamed(select_columns[-1], 'district')
-                df: DataFrame = df.withColumn('Custom_Decade', lit(self.get_year(index)))
-                _data = _data.union(df)
+                df: DataFrame = self.select_columns(df, select_columns)
+                df: DataFrame = self.rename_select_columns(df, select_columns)
+                df: DataFrame = self.add_decade(df, index)
+                df: DataFrame = self.extract_logrecno(df)
+                df: DataFrame = self.add_composite_key(df)
+                self.__data = self.__data.union(df)
 
-        return _data
+        return self.__data
 
     def add_data_from(self, filename):
         df: DataFrame = DataLoader.spark.read.format("orc").load(filename)

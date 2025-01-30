@@ -16,7 +16,7 @@ def main():
 
     SUMMARY_LEVELS = [50, 500, 160, 40]
 
-    FINAL_COLUMNS = ['id', 'year', 'state_abbr', 'logrecno', 'summary_level', 'county', 'name', 'district', 'total_population', 'white_population', \
+    FINAL_COLUMNS = ['unique_key', 'year', 'state_abbr', 'logrecno', 'summary_level', 'county', 'name', 'district', 'total_population', 'white_population', \
                      'black_population', 'american_indian_population', 'asian_population', 'native_hawaiian_population', 'other_race_population', \
                      'two_or_more_races_population', 'region', 'urban_rural']
     
@@ -35,6 +35,7 @@ def main():
                             .using_region() \
                             .add_year() \
                             .add_geodata() \
+                            .using_composite_key() \
                             .select_data(FINAL_COLUMNS) \
                             .data
 

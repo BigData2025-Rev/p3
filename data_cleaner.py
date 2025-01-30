@@ -160,7 +160,6 @@ class DataCleaner():
                 DataCleaner: A new DataCleaner instance with the updated DataFrame.
         """
         data: DataFrame = self.__data
-        data = data.withColumnRenamed('Custom_Unique_Key', 'id')
         data = data.withColumnRenamed('STUSAB', 'state_abbr')
         data = data.withColumnRenamed('COUNTY', 'county')
         data = data.withColumnRenamed('LOGRECNO', 'logrecno')
@@ -193,7 +192,7 @@ class DataCleaner():
                 DataCleaner: A new DataCleaner instance containing only the specified columns.
         """
         data: DataFrame = self.__data
-        data = data.withColumnRenamed("MACCI", "metro_status")
+        # data = data.withColumnRenamed("MACCI", "metro_status")
         data = data.withColumn(
             "metro_status",
             when(col("metro_status") == "Y", "Metropolitan")
@@ -241,4 +240,9 @@ class DataCleaner():
                                 .when(col("urban_rural") == 'R', 'Rural') \
                                 .when(col("urban_rural").isNull(), None) \
                                 .otherwise('Mixed'))
+        return DataCleaner(data)
+    
+    def using_composite_key(self):
+        data: DataFrame = self.__data
+        data = data.withColumnRenamed('Custom_Unique_Key','unique_key')
         return DataCleaner(data)

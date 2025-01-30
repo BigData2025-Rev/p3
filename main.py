@@ -1,8 +1,9 @@
 from data_loader import DataLoader
 from data_cleaner import DataCleaner
 from pyspark.sql import DataFrame
-from config import HDFS_DATA_DIR_1, HDFS_DATA_DIR_2, HDFS_DATA_DIR_3
-from pyspark.sql.functions import col
+from config import HDFS_DATA_DIR_1, HDFS_DATA_DIR_2, HDFS_DATA_DIR_3 #, HDFS_NATIONAL_DIR_1
+# from pyspark.sql.functions import col
+# from pyspark.sql.types import IntegerType
 
 def main():
     data_loader = DataLoader()
@@ -11,6 +12,9 @@ def main():
     data_loader.add_data_from(HDFS_DATA_DIR_2)
     data_loader.add_data_from(HDFS_DATA_DIR_3)
     data_loader.set_excluded_columns()
+
+    # national_data = data_loader.load_from_file(HDFS_NATIONAL_DIR_1)
+    # data_loader.debug_data(national_data)
 
     data: DataFrame = data_loader.data
 
@@ -45,7 +49,7 @@ def main():
     #Output to ORC
     cleaned_data.write.orc("cleaned_data.orc", mode="overwrite")
     cleaned_data.show()
-    # cleaned_data.filter(col('summary_level') == 40).select(['state_abbr', 'total_population']).show()
+    # cleaned_data.filter(col('summary_level') == 500).select(['state_abbr', 'total_population', 'urban_rural']).show()
     cleaned_data.printSchema()
 
     data_loader.stop()

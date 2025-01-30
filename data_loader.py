@@ -3,7 +3,7 @@ import spark_singleton as ss
 from pyspark.sql import SparkSession
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import col, lit, concat, udf
-from pyspark.sql.types import StringType
+from pyspark.sql.types import StringType, IntegerType
 
 @udf(StringType())
 def extract_logrecno(entry):
@@ -85,9 +85,21 @@ class DataLoader():
             self.__columns = self.__columns & set(df.columns)
         self.__data_list.append(df)
 
+    
+
     def set_excluded_columns(self):
         self.__excluded = sorted(list(set([column for df in self.__data_list for column in df.columns if column not in self.__columns])))
         self.__columns = list(self.__columns)
 
+    def load_from_file(self, filename):
+        df: DataFrame = DataLoader.spark.read.format("orc").load(filename)
+        return df
+    def debug_data(self, data: DataFrame):
+        data = data.withColumn('SUMLEV', col('SUMLEV').cast(IntegerType()))
+        summary_levels = data.select('SUMLEV').distinct().collect()
+        for summary_level in summary_levels:
+            data.filter(col('SUMLEV') == summary_level['SUMLEV']).select(['STUSAB', 'LOGRECNO','GEOCOMP', 'UR']).show()
+            tst = input(f"Current: {summary_level} \nPress any key to continue...")
+            
     def stop(self):
         DataLoader.spark.stop()

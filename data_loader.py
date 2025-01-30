@@ -1,7 +1,14 @@
+import re
 import spark_singleton as ss
 from pyspark.sql import SparkSession
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, lit, concat
+from pyspark.sql.functions import col, lit, concat, udf
+from pyspark.sql.types import StringType
+
+@udf(StringType())
+def extract_logrecno(entry):
+    matched = re.search(r'\d+', entry) 
+    return matched.group()
 
 class DataLoader():
     spark = ss.SparkSingleton.getInstance()
@@ -36,12 +43,17 @@ class DataLoader():
     def add_decade(self, data: DataFrame, index):
         data = data.withColumn('Custom_Decade', lit(self.get_year(index)))
         return data
+    
+    def extract_logrecno(self, data: DataFrame):
+        data: DataFrame = data.withColumn('LOGRECNO', extract_logrecno('LOGRECNO'))
+        return data
 
     def add_composite_key(self, data: DataFrame):
         data = data.withColumn('Custom_Unique_Key', concat(col('Custom_Decade'),lit('-'), col('STUSAB'),lit('-'), col('LOGRECNO')))
         
         return data
     
+
     @property
     def data(self):
         self.__data = None        
@@ -52,12 +64,14 @@ class DataLoader():
                 self.__data = self.select_columns(self.__data, select_columns)
                 self.__data = self.rename_select_columns(self.__data, select_columns)
                 self.__data = self.add_decade(self.__data, index)
+                self.__data = self.extract_logrecno(self.__data)
                 self.__data = self.add_composite_key(self.__data)
             else:
                 select_columns = self.get_select_columns(index)
                 df: DataFrame = self.select_columns(df, select_columns)
                 df: DataFrame = self.rename_select_columns(df, select_columns)
                 df: DataFrame = self.add_decade(df, index)
+                df: DataFrame = self.extract_logrecno(df)
                 df: DataFrame = self.add_composite_key(df)
                 self.__data = self.__data.union(df)
 

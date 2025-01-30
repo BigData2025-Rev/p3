@@ -23,7 +23,7 @@ From the same website as above, scroll down to the bottom until you find `pl_all
 Open `pl_all_3_2010.sas` in the workbench. Before running it, you'll need to change two variables:
 
 * `libname xxx` Change this to the path of where you want your output to go, e.g. a new folder in the same directory called "censusdata" or something.
-* `infile` This will need to be changed for each "data" block. Point the first one to your Part1 file, the second to your Part2 file, and the third one to the GeoHeaders file.
+* `infile` This will need to be changed for each "data" block. Point `data work.header` to the GeoHeaders file, `data work.part1` to the Part1 file, and `data work.part2` to the Part2 file.
 
 Once you have everything set up, save your changes and run the program--the files will be automatically merged and outputted in the original state's folder as a SAS dataset.
 

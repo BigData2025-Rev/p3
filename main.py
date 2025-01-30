@@ -16,8 +16,10 @@ def main():
 
     SUMMARY_LEVELS = [50, 500, 160, 40]
 
-    FINAL_COLUMNS = ['year', 'state_abbr', 'logrecno', 'summary_level', 'county', 'city_name', 'district', 'total_population', 'white_population', 'black_population', \
-                     'american_indian_population', 'asian_population', 'native_hawaiian_population', 'other_race_population', 'two_or_more_races_population']
+    FINAL_COLUMNS = ['id', 'year', 'state_abbr', 'logrecno', 'summary_level', 'county', 'name', 'district', 'total_population', 'white_population', \
+                     'black_population', 'american_indian_population', 'asian_population', 'native_hawaiian_population', 'other_race_population', \
+                     'two_or_more_races_population', 'region', 'urban_rural']
+    
 
     cleaned_data: DataFrame = DataCleaner(data) \
                             .filter_summary_levels(SUMMARY_LEVELS) \
@@ -31,18 +33,17 @@ def main():
                             .using_two_or_more_races_population() \
                             .using_urban_rural() \
                             .using_region() \
-                            .add_metro_status() \
                             .add_year() \
-                            .add_geodata(2000) \
+                            .add_geodata() \
                             .select_data(FINAL_COLUMNS) \
                             .data
 
     #Ouptut to CSV
-    # cleaned_data.coalesce(1).write.csv("2000_combined_states_filtered.csv", header=True, mode="overwrite")
+    #cleaned_data.coalesce(1).write.csv("final_data.csv", header=True, mode="overwrite")
 
     #Output to ORC
     # cleaned_data.write.orc("2000_combined_states_filtered.orc", mode="overwrite")
-    cleaned_data.show()
+    #cleaned_data.show()
     cleaned_data.printSchema()
 
     data_loader.stop()

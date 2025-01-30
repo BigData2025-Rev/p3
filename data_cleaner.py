@@ -139,7 +139,6 @@ class DataCleaner():
         return DataCleaner(data)
 
     #Adds the year column to the dataframe.
-    #Will need to change this for each decade if other groups do not use the same column name.
     def add_year(self) -> DataFrame:
         """
             Renames the 'Custom_Decade' column to 'year' and casts it to an integer type.
@@ -153,32 +152,20 @@ class DataCleaner():
         return DataCleaner(data)
 
     #Adds data from the geodata portion of the data and other needed columns.
-    def add_geodata(self, decade: int) -> DataFrame:
+    def add_geodata(self) -> DataFrame:
         """
             Renames columns related to geographic data (e.g., state abbreviation, county, city name, etc.).
-            Handles district column renaming based on the specified decade (2000, 2010, or 2020).
-            
-            Args:
-                decade (int): The decade for which the data is being processed (2000, 2010, or 2020).
             
             Returns:
                 DataCleaner: A new DataCleaner instance with the updated DataFrame.
         """
         data: DataFrame = self.__data
+        data = data.withColumnRenamed('Custom_Unique_Key', 'id')
         data = data.withColumnRenamed('STUSAB', 'state_abbr')
         data = data.withColumnRenamed('COUNTY', 'county')
         data = data.withColumnRenamed('LOGRECNO', 'logrecno')
-        data = data.withColumnRenamed('NAME', 'city_name')
+        data = data.withColumnRenamed('NAME', 'name')
         data = data.withColumnRenamed('SUMLEV', 'summary_level')
-
-        #2000: CD106, 2010: CD, 2020: CD116 (double check these are correct)
-        #Now handled at the DataLoader class.
-        # if decade == 2000:
-        #     data = data.withColumnRenamed('CD106', 'district')
-        # elif decade == 2010:
-        #     data = data.withColumnRenamed('CD', 'district')
-        # elif decade == 2020:
-        #     data = data.withColumnRenamed('CD116', 'district')
         return DataCleaner(data)
 
     #Selects the columns we need for the final output. Pass in a list of columns to select.
@@ -250,7 +237,7 @@ class DataCleaner():
         """
         data: DataFrame = self.__data
         data = data.withColumnRenamed("UR", "urban_rural")
-        data = data.withColumn('UR', when(col("urban_rural") == 'U', 'Urban') \
+        data = data.withColumn('urban_rural', when(col("urban_rural") == 'U', 'Urban') \
                                 .when(col("urban_rural") == 'R', 'Rural') \
                                 .when(col("urban_rural").isNull(), None) \
                                 .otherwise('Mixed'))

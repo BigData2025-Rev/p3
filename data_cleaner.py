@@ -206,7 +206,7 @@ class DataCleaner():
                 DataCleaner: A new DataCleaner instance containing only the specified columns.
         """
         data: DataFrame = self.__data
-        data = data.withColumnRenamed("MACCI", "metro_status")
+        # data = data.withColumnRenamed("MACCI", "metro_status")
         data = data.withColumn(
             "metro_status",
             when(col("metro_status") == "Y", "Metropolitan")

@@ -17,9 +17,11 @@ class DataLoader():
 
     def get_select_columns(self, index: int):
         cd_difference = ['CD106', 'CD', 'CD116']
+        pci_difference = ['MACCI', 'CBSAPCI', 'CBSAPCI']
 
         select_columns = self.__columns.copy()
         select_columns.append(cd_difference[index])
+        select_columns.append(pci_difference[index])
         return select_columns
     
     def select_columns(self, data: DataFrame, select_columns: list[str]):
@@ -27,7 +29,8 @@ class DataLoader():
         return data
     
     def rename_select_columns(self, data: DataFrame, select_columns: list[str]):
-        data: DataFrame = data.withColumnRenamed(select_columns[-1], 'district')
+        data: DataFrame = data.withColumnRenamed(select_columns[-2], 'district')
+        data: DataFrame = data.withColumnRenamed(select_columns[-1], 'metro_status')
         return data
     
     def add_decade(self, data: DataFrame, index):

@@ -11,7 +11,7 @@ df = spark.read.csv(path, header=True, inferSchema=True)
 # Path to the folder where the output will be stored.
 orc_path = "hdfs://localhost:9000/user/test/2010_combined_states"
 
-# Coalescing the partitions to make the final ORC file useable.
+# Coalescing the partitions to make the final ORC file usable.
 df.coalesce(1).write.format('orc').mode('overwrite').save(orc_path)
 
 spark.stop()

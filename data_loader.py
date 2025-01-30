@@ -88,7 +88,6 @@ class DataLoader():
     def set_excluded_columns(self):
         self.__excluded = sorted(list(set([column for df in self.__data_list for column in df.columns if column not in self.__columns])))
         self.__columns = list(self.__columns)
-        print(self.__excluded)
 
     def stop(self):
         DataLoader.spark.stop()

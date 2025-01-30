@@ -11,19 +11,6 @@ class DataCleaner():
     def data(self) -> DataFrame:
         data: DataFrame = self.__data
         return data
-    
-    def using_total_population(self):
-        """
-            Author: Miguel + ideas from team.
-            Example for individual methods that are responsible for a single task 
-            like making sure total population is included, has the right data type, and it is named appropriately.
-
-            Returns: A new DataCleaner object with the resulting DataFrame passed to its constructor.
-        """
-        data: DataFrame = self.__data
-        data = data.withColumnRenamed('P0010001', 'total_population')
-        data = data.withColumn('total_population', col('total_population').cast(IntegerType()))
-        return DataCleaner(data)
 
     #Filters summary levels, pass in a list of summary levels to filter by.
     def filter_summary_levels(self, summary_levels: list[int]):
@@ -139,7 +126,7 @@ class DataCleaner():
         return DataCleaner(data)
 
     #Adds the year column to the dataframe.
-    def add_year(self) -> DataFrame:
+    def add_year(self):
         """
             Renames the 'Custom_Decade' column to 'year' and casts it to an integer type.
             
@@ -152,7 +139,7 @@ class DataCleaner():
         return DataCleaner(data)
 
     #Adds data from the geodata portion of the data and other needed columns.
-    def add_geodata(self) -> DataFrame:
+    def add_geodata(self):
         """
             Renames columns related to geographic data (e.g., state abbreviation, county, city name, etc.).
             
@@ -168,7 +155,7 @@ class DataCleaner():
         return DataCleaner(data)
 
     #Selects the columns we need for the final output. Pass in a list of columns to select.
-    def select_data(self, columns: list[str]) -> DataFrame:
+    def select_data(self, columns: list[str]):
         """
             Selects specific columns from the DataFrame and returns a new DataCleaner instance with the subset of data.
 

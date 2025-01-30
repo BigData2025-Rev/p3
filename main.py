@@ -2,6 +2,7 @@ from data_loader import DataLoader
 from data_cleaner import DataCleaner
 from pyspark.sql import DataFrame
 from config import HDFS_DATA_DIR_1, HDFS_DATA_DIR_2, HDFS_DATA_DIR_3
+from pyspark.sql.functions import col
 
 def main():
     data_loader = DataLoader()
@@ -12,13 +13,12 @@ def main():
     data_loader.set_excluded_columns()
 
     data: DataFrame = data_loader.data
-    data.show()
 
-    SUMMARY_LEVELS = [50, 500, 160, 40]
+    SUMMARY_LEVELS = [40, 50, 160, 500]
 
     FINAL_COLUMNS = ['unique_key', 'year', 'state_abbr', 'logrecno', 'summary_level', 'county', 'name', 'district', 'total_population', 'white_population', \
                      'black_population', 'american_indian_population', 'asian_population', 'native_hawaiian_population', 'other_race_population', \
-                     'two_or_more_races_population', 'region', 'urban_rural']
+                     'two_or_more_races_population', 'region', 'urban_rural', 'metro_status']
     
 
     cleaned_data: DataFrame = DataCleaner(data) \
@@ -43,8 +43,9 @@ def main():
     #cleaned_data.coalesce(1).write.csv("final_data.csv", header=True, mode="overwrite")
 
     #Output to ORC
-    # cleaned_data.write.orc("2000_combined_states_filtered.orc", mode="overwrite")
-    #cleaned_data.show()
+    cleaned_data.write.orc("cleaned_data.orc", mode="overwrite")
+    cleaned_data.show()
+    # cleaned_data.filter(col('summary_level') == 40).select(['state_abbr', 'total_population']).show()
     cleaned_data.printSchema()
 
     data_loader.stop()

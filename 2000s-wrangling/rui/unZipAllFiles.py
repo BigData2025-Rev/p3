@@ -69,7 +69,8 @@ def batch_process(base_dir, output_dir):
 
 # 设置文件路径
 
-base_dir = "/mnt/c/Personal_Official/Project/revature/project3/data/2000/redistricting_file--pl_94-171"
-output_dir = "/mnt/c/Personal_Official/Project/revature/project3/data/2000/redistricting_file--pl_94-171"
+if __name__=="__main__":
+    base_dir = "/mnt/c/Personal_Official/Project/revature/project3/data/2000/redistricting_file--pl_94-171"
+    output_dir = "/mnt/c/Personal_Official/Project/revature/project3/data/2000/redistricting_file--pl_94-171"
 
-batch_process(base_dir, output_dir)
+    batch_process(base_dir, output_dir)

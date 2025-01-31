@@ -22,7 +22,7 @@ def main():
 
     FINAL_COLUMNS = ['unique_key', 'year', 'state_abbr', 'logrecno', 'summary_level', 'county', 'name', 'district', 'total_population', 'white_population', \
                      'black_population', 'american_indian_population', 'asian_population', 'native_hawaiian_population', 'other_race_population', \
-                     'two_or_more_races_population', 'region', 'urban_rural', 'metro_status']
+                     'two_or_more_races_population', 'total_adult_pop', 'region', 'urban_rural', 'metro_status']
     
 
     cleaned_data: DataFrame = DataCleaner(data) \
@@ -40,6 +40,7 @@ def main():
                             .add_year() \
                             .add_geodata() \
                             .using_composite_key() \
+                            .using_total_adult_population() \
                             .select_data(FINAL_COLUMNS) \
                             .data
 
@@ -47,7 +48,7 @@ def main():
     #cleaned_data.coalesce(1).write.csv("final_data.csv", header=True, mode="overwrite")
 
     #Output to ORC
-    cleaned_data.write.orc("cleaned_data.orc", mode="overwrite")
+    # cleaned_data.write.orc("cleaned_data.orc", mode="overwrite")
     cleaned_data.show()
     # cleaned_data.filter(col('summary_level') == 500).select(['state_abbr', 'total_population', 'urban_rural']).show()
     cleaned_data.printSchema()

@@ -233,3 +233,15 @@ class DataCleaner():
         data: DataFrame = self.__data
         data = data.withColumnRenamed('Custom_Unique_Key','unique_key')
         return DataCleaner(data)
+
+    def using_total_population_adult(self):
+        """
+            Renames the 'P0030001' column to 'total_adult_pop' and casts it to an integer type.
+            
+            Returns:
+                DataCleaner: A new DataCleaner instance with the updated DataFrame.
+        """
+        data: DataFrame = self.__data
+        data = data.withColumnRenamed('P0030001', 'total_adult_pop')
+        data = data.withColumn('total_adult_pop', col('total_adult_pop').cast(IntegerType()))
+        return DataCleaner(data)

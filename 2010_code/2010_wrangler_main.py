@@ -36,11 +36,11 @@ for state in constant.STATES:
     geo_df = geo_rdd.toDF(list(constant.GEO_HEADER.keys()))
 
     # load census data
-    p1_df = spark.read.csv(p1_file)
+    p1_df = spark.read.csv(p1_file, inferSchema=True)
     p1_df = p1_df.toDF(*constant.P1_HEADER)
     p1_df = p1_df.drop("FILEID","STUSAB","CHARITER","CIFSN")
 
-    p2_df = spark.read.csv(p2_file)
+    p2_df = spark.read.csv(p2_file, inferSchema=True)
     p2_df = p2_df.toDF(*constant.P2_HEADER)
     p2_df = p2_df.drop("FILEID","STUSAB","CHARITER","CIFSN")
 

@@ -1,10 +1,23 @@
+import os
+from pathlib import Path
 from data_loader import DataLoader
 from data_cleaner import DataCleaner
+from pyspark import StorageLevel
 from pyspark.sql import DataFrame
 from config import HDFS_DATA_DIR_1, HDFS_DATA_DIR_2, HDFS_DATA_DIR_3 #, HDFS_NATIONAL_DIR_1
 # from pyspark.sql.functions import col
 # from pyspark.sql.types import IntegerType
 
+def save_dataframe_to_localpath(data: DataFrame):
+    #get absolute path to current working directory
+    path = Path(__file__).parent / "clean_data.orc"
+
+    #reduce partitions to one
+    data: DataFrame = data.coalesce(1)
+
+    #save to orc file
+    data.write.mode('overwrite').format('orc').save(f"file://{str(path.absolute())}")
+    
 def main():
     data_loader = DataLoader()
 
@@ -22,7 +35,7 @@ def main():
 
     FINAL_COLUMNS = ['unique_key', 'year', 'state_abbr', 'logrecno', 'summary_level', 'county', 'name', 'district', 'total_population', 'white_population', \
                      'black_population', 'american_indian_population', 'asian_population', 'native_hawaiian_population', 'other_race_population', \
-                     'two_or_more_races_population', 'total_adult_pop', 'region', 'urban_rural', 'metro_status']
+                     'two_or_more_races_population', 'total_adult_pop', 'region', 'metro_status']
     
 
     cleaned_data: DataFrame = DataCleaner(data) \
@@ -35,22 +48,17 @@ def main():
                             .using_native_hawaiian_population() \
                             .using_other_race_population() \
                             .using_two_or_more_races_population() \
-                            .using_urban_rural() \
                             .using_region() \
                             .add_year() \
                             .add_geodata() \
                             .using_composite_key() \
-                            .using_total_adult_population() \
+                            .using_total_population_adult() \
                             .select_data(FINAL_COLUMNS) \
                             .data
 
-    #Ouptut to CSV
-    #cleaned_data.coalesce(1).write.csv("final_data.csv", header=True, mode="overwrite")
-
     #Output to ORC
-    # cleaned_data.write.orc("cleaned_data.orc", mode="overwrite")
+    save_dataframe_to_localpath(cleaned_data)
     cleaned_data.show()
-    # cleaned_data.filter(col('summary_level') == 500).select(['state_abbr', 'total_population', 'urban_rural']).show()
     cleaned_data.printSchema()
 
     data_loader.stop()

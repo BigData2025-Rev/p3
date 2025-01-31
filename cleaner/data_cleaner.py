@@ -211,23 +211,23 @@ class DataCleaner():
                                 .otherwise('Other'))
         return DataCleaner(data)
     
-    def using_urban_rural(self):
-        """
-            Add Urban or Rural classification column and leaves null values as null.
-            - U -> wholly urban
-            - R -> wholly rural
-            - M -> Mixed
+    # def using_urban_rural(self):
+    #     """
+    #         Add Urban or Rural classification column and leaves null values as null.
+    #         - U -> wholly urban
+    #         - R -> wholly rural
+    #         - M -> Mixed
 
-            Returns:
-                DataCleaner: A new DataCleaner instance containing only the specified columns.
-        """
-        data: DataFrame = self.__data
-        data = data.withColumnRenamed("UR", "urban_rural")
-        data = data.withColumn('urban_rural', when(col("urban_rural") == 'U', 'Urban') \
-                                .when(col("urban_rural") == 'R', 'Rural') \
-                                .when(col("urban_rural").isNull(), None) \
-                                .otherwise('Mixed'))
-        return DataCleaner(data)
+    #         Returns:
+    #             DataCleaner: A new DataCleaner instance containing only the specified columns.
+    #     """
+    #     data: DataFrame = self.__data
+    #     data = data.withColumnRenamed("UR", "urban_rural")
+    #     data = data.withColumn('urban_rural', when(col("urban_rural") == 'U', 'Urban') \
+    #                             .when(col("urban_rural") == 'R', 'Rural') \
+    #                             .when(col("urban_rural").isNull(), None) \
+    #                             .otherwise('Mixed'))
+    #     return DataCleaner(data)
     
     def using_composite_key(self):
         data: DataFrame = self.__data

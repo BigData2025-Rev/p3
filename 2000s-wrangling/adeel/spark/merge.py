@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import concat, col
+from pyspark.sql.functions import concat, col, lit
 import os
 import glob
 from functools import reduce
@@ -40,7 +40,7 @@ if state_dfs:
     combined_df = reduce(lambda df1, df2: df1.union(df2), state_dfs)
 
     # logrecno transformation -> state inital (STUSAB) + logrecno to make unique for each record
-    combined_df = combined_df.withColumn("LOGRECNO", concat(col("STUSAB"), col("LOGRECNO")))
+    combined_df = combined_df.withColumn("composite_key", concat(lit("2000"), lit("-"), col("STUSAB"), lit("-"), col("LOGRECNO")))
     combined_df = combined_df.coalesce(1)
 
     # write as orc file

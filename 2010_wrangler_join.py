@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-import constant
+import 2010_wrangler_constant
 
 spark = SparkSession.builder\
     .appName("DataProcessing") \

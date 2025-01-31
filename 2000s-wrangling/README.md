@@ -6,7 +6,7 @@
 - Merging
 - Combine
 
-Each phase is associated with a single file so it can be run independently, but every phase except the preprocess phase relies on the previous phases output, hence it is adviced to run the files in the following order:
+Each phase is associated with a single file, allowing it to be run independently. However, all phases except the preprocessing phase depend on the output of the previous phase. Therefore, it is recommended to run the files in the following order:
 
 - final-wrangler/preprocess.py `(Downloads required files, unzips them and parses the header files)`
 - final-wrangler/parser.py `(reads the header files generated for files 00001, 00002 and geo and fuses the header with the corresponding data)`

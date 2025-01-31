@@ -1,4 +1,13 @@
-# p3
+# 2010 US Census Data Wrangling
+
+## Contributors
+
+* Henry Lee
+* Harish Kandaswamy
+* Tin Ngo
+* Vadim Torgashov
+
+## Details
 
 2010_code contains Python files used to create the final dataset.
 

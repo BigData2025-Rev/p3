@@ -1,6 +1,7 @@
 from pyspark.sql import SparkSession
 import constant
 
+#create Spark session
 spark = SparkSession.builder\
     .appName("DataProcessing") \
     .config("spark.executor.memory", "4g") \
@@ -16,22 +17,27 @@ def process_line(line):
     return [eval(f"line[{v}]").strip() for k, v in geo_header.items()]
 
 for state in constant.STATES:
+    #grab the 3 files that each state is broken up into
     geo_file = f"final/2010/{state}/*geo2010.pl"
     p1_file = f"final/2010/{state}/*000012010.pl"
     p2_file = f"final/2010/{state}/*000022010.pl"
 
+    #create rdd of the geo file and convert the rdd to a dataframe
     geo_rdd = spark.sparkContext.textFile(geo_file)
     geo_rdd = geo_rdd.map(process_line)
     geo_df = geo_rdd.toDF(list(constant.GEO_HEADER.keys()))
 
+    #create dataframe of the part 1 file
     p1_df = spark.read.csv(p1_file)
     p1_df = p1_df.toDF(*constant.P1_HEADER)
     p1_df = p1_df.drop("FILEID","STUSAB","CHARITER","CIFSN")
 
+    #create dataframe of the part 2 file
     p2_df = spark.read.csv(p2_file)
     p2_df = p2_df.toDF(*constant.P2_HEADER)
     p2_df = p2_df.drop("FILEID","STUSAB","CHARITER","CIFSN")
 
+    #combine the 3 dataframes and write them to file
     output = geo_df.join(p1_df, on="LOGRECNO", how="outer")
     output = output.join(p2_df, on="LOGRECNO", how="outer")
     output = output.sort("LOGRECNO", ascending=True)

@@ -8,7 +8,7 @@ def main():
 
     data_loader = DataLoader(HDFS_DATA_DIR)
     clean_data: DataFrame = data_loader.data
-    clean_data.filter(col('year') == 2020).filter(col('summary_level') == 40).show()
+    clean_data.printSchema()
 
     result: DataFrame = NationalTotalAnalysis(clean_data) \
                         .get_state_level_data() \
@@ -16,6 +16,7 @@ def main():
                         .data
     
     result.show()
+    result.printSchema()
     data_loader.stop()
 
 if __name__ == '__main__':

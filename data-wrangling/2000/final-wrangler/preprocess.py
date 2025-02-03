@@ -124,6 +124,6 @@ download_obj.download_dir(REMOTE_RESOURCE, LOCAL_PATH)
 batch_process(LOCAL_PATH, LOCAL_PATH)
 
 # parse access database files
-ParseHeaders().parse(ACCESS_PATH)
+ParseHeaders().parse(ACCESS_FILE)
 
 

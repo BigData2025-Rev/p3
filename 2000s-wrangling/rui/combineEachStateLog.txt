@@ -1,9 +1,0 @@
-Combined data saved to: /mnt/c/Personal_Official/Project/revature/project3/data/2000/combined_each_state//Tennessee
-Combined data saved to: /mnt/c/Personal_Official/Project/revature/project3/data/2000/combined_each_state//Texas
-Combined data saved to: /mnt/c/Personal_Official/Project/revature/project3/data/2000/combined_each_state//Utah
-Combined data saved to: /mnt/c/Personal_Official/Project/revature/project3/data/2000/combined_each_state//Vermont
-Combined data saved to: /mnt/c/Personal_Official/Project/revature/project3/data/2000/combined_each_state//Virginia
-Combined data saved to: /mnt/c/Personal_Official/Project/revature/project3/data/2000/combined_each_state//Washington
-Combined data saved to: /mnt/c/Personal_Official/Project/revature/project3/data/2000/combined_each_state//West_Virginia
-Combined data saved to: /mnt/c/Personal_Official/Project/revature/project3/data/2000/combined_each_state//Wisconsin
-Combined data saved to: /mnt/c/Personal_Official/Project/revature/project3/data/2000/combined_each_state//Wyoming

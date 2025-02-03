@@ -1,2 +1,0 @@
-US Summary file filtered, CSV file under: /mnt/c/Personal_Official/Project/revature/project3/data/2000/allStates_test/US_Summary/csv/
-US Summary file filtered, ORC file under: /mnt/c/Personal_Official/Project/revature/project3/data/2000/allStates_test/US_Summary/orc/

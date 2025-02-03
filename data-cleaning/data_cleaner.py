@@ -24,6 +24,7 @@ class DataCleaner():
                 DataCleaner: A new DataCleaner instance with the filtered DataFrame.
         """
         data: DataFrame = self.__data
+        data = data.withColumn('SUMLEV', col('SUMLEV').cast(IntegerType()))
         data = data.filter(col('SUMLEV').isin(summary_levels))
         return DataCleaner(data)
 

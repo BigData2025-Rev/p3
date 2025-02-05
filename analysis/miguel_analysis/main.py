@@ -24,7 +24,7 @@ def main():
     #                     .get_trend_line()
     result = result.union(future_result.select(['year', 'total_population']))
     result.show()
-    # result.printSchema()
+    result.printSchema()
     data_loader.stop()
 
 if __name__ == '__main__':

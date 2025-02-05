@@ -17,7 +17,7 @@ path = "hdfs://localhost:9000/user/test/clean_data.orc"
 # Read the ORC file and save it into a Spark DataFrame.
 data = spark.read.orc(path)
 
-# Summarizes the population by demographic for each census year in California.
+# Summarizes the population by demographic for each census year in California, New York, and Texas.
 states = data.where((data.state_abbr == "CA") & (data.summary_level == 40) | (data.state_abbr == "TX") & (data.summary_level == 40) | (data.state_abbr == "NY") & (data.summary_level == 40))
 states = states.groupBy("state_abbr", "year", "summary_level")
 states = states.sum("white_population", "black_population", "american_indian_population", "asian_population", "native_hawaiian_population", "other_race_population", "two_or_more_races_population")

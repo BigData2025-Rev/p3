@@ -1,5 +1,6 @@
 .env
 __pycache__
+.git-old
 .idea
 2000_combined_states.orc
 census_maxine.py

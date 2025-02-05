@@ -47,7 +47,7 @@ national = national.select(col("year").alias("Year"),
                  col("sum(other_race_population)").alias("Other Race"), 
                  col("sum(two_or_more_races_population)").alias("Two Or More Races"))
 
-# Linear regression algorithm to predict future population.
+# Linear regression algorithm to predict future population for each demographic.
 def linear_regression(df, column, prediction_year):
 
     n = df.select("Year").count()

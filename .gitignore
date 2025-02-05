@@ -6,3 +6,4 @@ __pycache__
 census_maxine.py
 data_analyzer.py
 clean_data.orc
+analysis_result.orc

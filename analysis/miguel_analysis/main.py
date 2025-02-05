@@ -1,4 +1,5 @@
 import os
+import shutil
 from pathlib import Path
 from pyspark.sql import DataFrame
 from data_loader import DataLoader
@@ -11,11 +12,15 @@ def save_dataframe_to_localpath(data: DataFrame, filename: str):
     path = Path(__file__).parent / filename
 
     #reduce partitions to one
-    data: DataFrame = data.coalesce(1)
+    data: DataFrame = data.repartition(1)
 
-    #save to orc file
-    data.write.mode('overwrite').format('orc').save(f"file://{str(path.absolute())}")
+    dir_path = str(path.absolute())
+    data.write.mode('overwrite').option("header", "true").csv(f"file://{dir_path}")
 
+    csv_file = [file for file in os.listdir(dir_path) if file.endswith('.csv')][0]
+    shutil.move(os.path.join(dir_path, csv_file), "result.csv")
+    shutil.rmtree(dir_path)
+   
 
 def main():
 
@@ -42,7 +47,7 @@ def main():
                         .data
     percent_change.show()
 
-    save_dataframe_to_localpath(percent_change, 'analysis_result.orc')
+    save_dataframe_to_localpath(percent_change, 'analysis_result.csv')
     data_loader.stop()
 
 if __name__ == '__main__':

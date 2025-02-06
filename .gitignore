@@ -5,3 +5,5 @@ __pycache__
 census_maxine.py
 data_analyzer.py
 clean_data.orc
+.git-old
+analysis/miguel_analysis

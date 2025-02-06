@@ -1,6 +1,7 @@
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import col, when
 from pyspark.sql.types import IntegerType
+from logger import logger
 
 class DataCleaner():
 
@@ -23,9 +24,16 @@ class DataCleaner():
             Returns:
                 DataCleaner: A new DataCleaner instance with the filtered DataFrame.
         """
-        data: DataFrame = self.__data
-        data = data.filter(col('SUMLEV').isin(summary_levels))
-        return DataCleaner(data)
+        logger.info(f"Filtering dataset to keep only summary levels: {summary_levels}")
+        try:
+            data: DataFrame = self.__data
+            before_count = data.count()
+            data = data.filter(col('SUMLEV').isin(summary_levels))
+            after_count = data.count()
+            logger.info(f"Filtered dataset from {before_count} to {after_count} rows.")
+            return DataCleaner(data)
+        except Exception as e:
+            logger.error(f"Error filtering summary levels: {str(e)}")
 
     def using_total_population(self):
         """
@@ -34,11 +42,15 @@ class DataCleaner():
             Returns:
                 DataCleaner: A new DataCleaner instance with the updated DataFrame.
         """
-        data: DataFrame = self.__data
-        data = data.withColumnRenamed('P0010001', 'total_population')
-        data = data.withColumn('total_population', col('total_population').cast(IntegerType()))
-        return DataCleaner(data)
-    
+        logger.info("Renaming and casting 'P0010001' to 'total_population' as IntegerType.")
+        try:
+            data: DataFrame = self.__data
+            data = data.withColumnRenamed('P0010001', 'total_population')
+            data = data.withColumn('total_population', col('total_population').cast(IntegerType()))
+            return DataCleaner(data)
+        except Exception as e: 
+            logger.error(f"Error in using_total_population: {str(e)}")
+            
     #Methods for demographic data
     def using_white_population(self):
         """

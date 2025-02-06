@@ -7,6 +7,8 @@ from pyspark.sql import DataFrame
 from config import HDFS_DATA_DIR_1, HDFS_DATA_DIR_2, HDFS_DATA_DIR_3 #, HDFS_NATIONAL_DIR_1
 # from pyspark.sql.functions import col
 # from pyspark.sql.types import IntegerType
+from logger import logger
+
 
 def save_dataframe_to_localpath(data: DataFrame):
     #get absolute path to current working directory
@@ -19,6 +21,8 @@ def save_dataframe_to_localpath(data: DataFrame):
     data.write.mode('overwrite').format('orc').save(f"file://{str(path.absolute())}")
     
 def main():
+    logger.info("Pipeline execution started.")
+
     data_loader = DataLoader()
 
     data_loader.add_data_from(HDFS_DATA_DIR_1)
@@ -58,6 +62,7 @@ def main():
 
     #Output to ORC
     save_dataframe_to_localpath(cleaned_data)
+    logger.info("Pipeline execution completed successfully.")
     cleaned_data.show()
     cleaned_data.printSchema()
 

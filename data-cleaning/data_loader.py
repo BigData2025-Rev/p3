@@ -4,6 +4,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import col, lit, concat, udf
 from pyspark.sql.types import StringType, IntegerType
+from logger import logger
 
 @udf(StringType())
 def extract_logrecno(entry):
@@ -75,17 +76,21 @@ class DataLoader():
                 df: DataFrame = self.add_composite_key(df)
                 self.__data = self.__data.union(df)
 
+        logger.info(f"Final combined dataset has {self.__data.count()} rows and {len(self.__data.columns)} columns.")
         return self.__data
 
     def add_data_from(self, filename):
-        df: DataFrame = DataLoader.spark.read.format("orc").load(filename)
-        if self.__columns is None:
-            self.__columns = set(df.columns)
-        else:
-            self.__columns = self.__columns & set(df.columns)
-        self.__data_list.append(df)
-
-    
+        logger.info(f"Loading data from {filename}")
+        try:
+            df: DataFrame = DataLoader.spark.read.format("orc").load(filename)
+            logger.info(f"Successfully loaded {df.count()} rows and {len(df.columns)} columns from {filename}")
+            if self.__columns is None:
+                self.__columns = set(df.columns)
+            else:
+                self.__columns = self.__columns & set(df.columns)
+            self.__data_list.append(df)
+        except Exception as e:
+            logger.error(f"Failed to load data from {filename}: {str(e)}") 
 
     def set_excluded_columns(self):
         self.__excluded = sorted(list(set([column for df in self.__data_list for column in df.columns if column not in self.__columns])))

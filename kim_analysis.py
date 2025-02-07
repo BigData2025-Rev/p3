@@ -70,17 +70,9 @@ df2020 = df2020.withColumnRenamed("state_abbr_2020", "state_abbr")
 
 finaldf = df2000.join(df2020, on=["district", "state_abbr"], how="inner")
 finaldf = finaldf.orderBy("total_population_2020", ascending=False)
-#finaldf = finaldf.select("name", "majority_race_2000", "minority_race_2000", "majority_race_2020", "minority_race_2020")
 finaldf = finaldf.filter(finaldf.majority_race_2000 != finaldf.majority_race_2020)
 finaldf.show()
 
 
-
-
-#output to csv
 finaldf.write.csv("final_data.csv", header=True, mode="overwrite")
 
-
-
-# #output to csv
-# finaldf.write.csv("final_data.csv", header=True, mode="overwrite")

@@ -4,9 +4,7 @@ from data_loader import DataLoader
 from data_cleaner import DataCleaner
 from pyspark import StorageLevel
 from pyspark.sql import DataFrame
-from config import HDFS_DATA_DIR_1, HDFS_DATA_DIR_2, HDFS_DATA_DIR_3 #, HDFS_NATIONAL_DIR_1
-# from pyspark.sql.functions import col
-# from pyspark.sql.types import IntegerType
+from config import HDFS_DATA_DIR_1, HDFS_DATA_DIR_2, HDFS_DATA_DIR_3
 
 def save_dataframe_to_localpath(data: DataFrame):
     #get absolute path to current working directory
@@ -25,9 +23,6 @@ def main():
     data_loader.add_data_from(HDFS_DATA_DIR_2)
     data_loader.add_data_from(HDFS_DATA_DIR_3)
     data_loader.set_excluded_columns()
-
-    # national_data = data_loader.load_from_file(HDFS_NATIONAL_DIR_1)
-    # data_loader.debug_data(national_data)
 
     data: DataFrame = data_loader.data
 
@@ -53,12 +48,12 @@ def main():
                             .add_geodata() \
                             .using_composite_key() \
                             .using_total_population_adult() \
+                            .add_metro_status() \
                             .select_data(FINAL_COLUMNS) \
                             .data
 
     #Output to ORC
     save_dataframe_to_localpath(cleaned_data)
-    cleaned_data.show()
     cleaned_data.printSchema()
 
     data_loader.stop()

@@ -27,6 +27,7 @@ class DataCleaner():
         logger.info(f"Filtering dataset to keep only summary levels: {summary_levels}")
         try:
             data: DataFrame = self.__data
+            data = data.withColumn('SUMLEV', col('SUMLEV').cast(IntegerType()))
             before_count = data.count()
             data = data.filter(col('SUMLEV').isin(summary_levels))
             after_count = data.count()

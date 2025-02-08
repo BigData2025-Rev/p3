@@ -1,0 +1,2 @@
+Which districts experienced the highest decline and growth rates of the adult population (18+) across the three census years? Youth population?
+	SUMLEV 500, Year, State, Abbr, Name, total_population, total_adult_pop, growth rate calculation

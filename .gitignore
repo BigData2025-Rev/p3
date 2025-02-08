@@ -1,7 +1,12 @@
 .env
 __pycache__
+.git-old
 .idea
 2000_combined_states.orc
 census_maxine.py
 data_analyzer.py
 clean_data.orc
+.git-old
+analysis/miguel_analysis
+analysis_result.orc
+result.csv
